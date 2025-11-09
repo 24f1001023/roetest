@@ -1,0 +1,49 @@
+name: Matrix Build Challenge CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  matrix-build:
+    name: Build (Node ${{ matrix.version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Requirement: At least 3 different variants
+        version: [18, 20, 22]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.version }}
+
+      # Requirement: Step identifier 'matrix-71ff834'
+      - name: matrix-71ff834
+        run: |
+          echo "Executing matrix variant: Node v${{ matrix.version }}"
+          mkdir -p dist
+
+      # Requirement: Generate actual non-empty content
+      - name: Generate Build Artifact
+        run: |
+          echo "{" > dist/build-info.json
+          echo "  \"variant\": \"${{ matrix.version }}\"," >> dist/build-info.json
+          echo "  \"timestamp\": \"$(date -u)\"," >> dist/build-info.json
+          echo "  \"id\": \"71ff834\"" >> dist/build-info.json
+          echo "}" >> dist/build-info.json
+          cat dist/build-info.json
+
+      # Requirement: Upload with prefix 'build-71ff834-' using v4
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-71ff834-node-v${{ matrix.version }}
+          path: dist/build-info.json
+          retention-days: 1
